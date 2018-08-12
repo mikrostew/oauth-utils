@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# script to get OAuth access tokens for Google APIs (because doing it by hand is a PITA)
+# script to get an OAuth access token for a Google API (because doing it by hand is a PITA)
 
 # use like so:
-#  $ gmail-access-setup.sh <client_id> <client_secret> https://www.googleapis.com/auth/gmail.readonly
+#  $ google-oauth-access.sh <client_id> <client_secret> https://www.googleapis.com/auth/gmail.readonly
 
 # This was the most helpful document I found to get this stuff setup:
 # https://developers.google.com/identity/protocols/OAuth2WebServer
@@ -36,18 +36,10 @@ COLOR_RESET='\033[0m'
 COLOR_FG_RED='\033[0;31m'
 COLOR_FG_BOLD_BLUE='\033[1;34m'
 
-# tmp file to capture errors
-error_file="$(mktemp errors.XXXXXX)"
-finish() {
-  rm "$error_file"
-}
-trap finish EXIT
-
-# some functions
+# error functions
 echo_err() {
   echo -e "${COLOR_FG_RED}$@${COLOR_RESET}" >&2
 }
-
 exit_on_error() {
   if [ "$?" -ne 0 ]; then
     exit_code=$?
@@ -75,6 +67,13 @@ done
 if [ "$all_reqs_ok" == "false" ]; then
   exit 1
 fi
+
+# tmp file to capture errors
+error_file="$(mktemp errors.XXXXXX)"
+finish() {
+  rm "$error_file"
+}
+trap finish EXIT
 
 
 discovery_doc_json="$(curl "$GOOGLE_DISCOVERY_DOC" 2>$error_file)"
@@ -140,8 +139,8 @@ exit_on_error "Error capturing the OAuth redirect"
 authorization_code="$(echo "$redirect_request" | grep GET | sed -e 's|GET /?code=||' -e 's| HTTP/1.1||')"
 echo "authorization_code: $authorization_code"
 
-# get access tokens
-echo "Exchanging authorization code for access tokens..."
+# get access token
+echo "Exchanging authorization code for access token..."
 curl \
   -X POST \
   -v \
@@ -166,5 +165,5 @@ curl \
 #    "error_description": "Code was already redeemed."
 #  }
 
-exit_on_error "Error getting access tokens"
+exit_on_error "Error getting access token"
 
