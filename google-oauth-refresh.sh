@@ -56,7 +56,7 @@ if [ "$all_reqs_ok" == "false" ]; then
 fi
 
 # tmp file to capture errors
-error_file="$(mktemp errors.XXXXXX)"
+error_file="$(mktemp /tmp/errors.XXXXXX)"
 finish() {
   rm "$error_file"
 }
